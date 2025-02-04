@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Past Weather Data</title> 
+    <style>
+        body {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+        .monthlyTemps, .monthlyPrecip {
+            flex: 1;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .monthlyTemps {
+            border-right: 4px solid #ccc;
+        }
+        h1 {
+            font-size: 18px;
+            margin-bottom: 12px;
+        }
+    </style>
+    <!-- Load Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> 
+</head>
+<body>
+    <div class="monthlyTemps">
+        <h1>Monthly Temperature by 5-Year Period</h1>
+        <canvas id="janTemp"></canvas> 
+        <canvas id="febTemp"></canvas> 
+        <canvas id="marTemp"></canvas> 
+        <canvas id="aprTemp"></canvas> 
+        <canvas id="mayTemp"></canvas> 
+        <canvas id="junTemp"></canvas> 
+        <canvas id="julTemp"></canvas> 
+        <canvas id="augTemp"></canvas> 
+        <canvas id="sepTemp"></canvas> 
+        <canvas id="octTemp"></canvas> 
+        <canvas id="novTemp"></canvas> 
+        <canvas id="decTemp"></canvas> 
+    </div>
+
+    <div class="monthlyPrecip">
+        <h1>Monthly Precipitation by 5-Year Period</h1>
+        <canvas id="janPrecip"></canvas>     
+        <canvas id="febPrecip"></canvas>     
+        <canvas id="marPrecip"></canvas>     
+        <canvas id="aprPrecip"></canvas>    
+        <canvas id="mayPrecip"></canvas> 
+        <canvas id="junPrecip"></canvas> 
+        <canvas id="julPrecip"></canvas> 
+        <canvas id="augPrecip"></canvas> 
+        <canvas id="sepPrecip"></canvas> 
+        <canvas id="octPrecip"></canvas> 
+        <canvas id="novPrecip"></canvas> 
+        <canvas id="decPrecip"></canvas> 
+    </div>
+
+    <script>
+        // Parse the data from EJS
+        const pastTemps = <%- JSON.stringify(pastTemps) %>;
+       //THIS IS JUST FOR TESTING:
+       /*
+       const pastTemps = [
+        { value: 13.06, month: "03", year: "1971" }
+    ];
+    */
+        const pastPrecip = <%- JSON.stringify(pastPrecip) %>;
+        //THIS IS JUST FOR TESTING:
+        /*
+        const pastPrecip = [
+        { value: 64.3, month: "01", year: "1961" },
+        { value: 40.4, month: "02", year: "1961" },
+        { value: 47.7, month: "03", year: "1961" },
+        { value: 32.5, month: "04", year: "1961" },
+        { value: 5.9, month: "05", year: "1961" },
+        { value: 0.3, month: "06", year: "1961" },
+        { value: 0, month: "07", year: "1961" },
+        { value: 0, month: "08", year: "1961" },
+        { value: 6.6, month: "09", year: "1961" },
+        { value: 1.5, month: "10", year: "1961" },
+        { value: 81.3, month: "11", year: "1961" },
+        { value: 39.1, month: "12", year: "1961" },
+        { value: 14.8, month: "01", year: "1962" },
+        { value: 191, month: "02", year: "1962" },
+        { value: 66.9, month: "03", year: "1962" },
+        { value: 6.1, month: "04", year: "1962" },
+        { value: 0, month: "05", year: "1962" },
+        { value: 0, month: "06", year: "1962" },
+        { value: 0, month: "07", year: "1962" },
+        { value: 1.3, month: "08", year: "1962" },
+        { value: 0.5, month: "09", year: "1962" },
+        { value: 218.8, month: "10", year: "1962" },
+        { value: 21.1, month: "11", year: "1962" },
+        { value: 59.5, month: "12", year: "1962" },
+        { value: 123.7, month: "01", year: "1963" },
+        { value: 57.5, month: "02", year: "1963" },
+        { value: 105.5, month: "03", year: "1963" },
+        { value: 106.6, month: "04", year: "1963" },
+        { value: 9.4, month: "05", year: "1963" },
+        { value: 0, month: "06", year: "1963" },
+        { value: 0, month: "07", year: "1963" },
+        { value: 1.3, month: "08", year: "1963" },
+        { value: 9.7, month: "09", year: "1963" },
+        { value: 44.8, month: "10", year: "1963" },
+        { value: 101, month: "11", year: "1963" },
+        { value: 13, month: "12", year: "1963" },
+        { value: 94.2, month: "01", year: "1964" },
+        { value: 5.9, month: "02", year: "1964" },
+        { value: 37.2, month: "03", year: "1964" },
+        { value: 2.8, month: "04", year: "1964" },
+        { value: 10.7, month: "05", year: "1964" },
+        { value: 20.9, month: "06", year: "1964" },
+        { value: 1, month: "08", year: "1964" },
+        { value: 0, month: "09", year: "1964" },
+        { value: 44.4, month: "10", year: "1964" },
+        { value: 75.6, month: "11", year: "1964" },
+        { value: 140, month: "12", year: "1964" },
+        // ... Add remaining `pastPrecip` entries similarly
+    ];
+    */
+        
+        // Ensure the arrays are correctly sliced
+        const monthTemps = Array.from({ length: 12 }, () => []); // Create 12 empty arrays
+        const monthPrecip = Array.from({ length: 12 }, () => []); // 12 empty array for precip data
+
+        pastTemps.forEach((temp) => {
+            const monthIndex = parseInt(temp.month, 10) - 1; // Convert month to integer (0-based index)
+            monthTemps[monthIndex].push(temp); // Push the temp into the corresponding month
+        });
+
+        pastPrecip.forEach((precip) => {
+            const monthIndex = parseInt(precip.month, 10) - 1; // Convert month to integer (0-based index)
+            monthPrecip[monthIndex].push(precip); // Push the precip into the corresponding month
+        });
+        
+        const monthTempNames = ["janTemp", "febTemp", "marTemp", "aprTemp", "mayTemp", "junTemp", 
+                                "julTemp", "augTemp", "sepTemp", "octTemp", "novTemp", "decTemp"];
+        
+        const monthPrecipNames = ["janPrecip", "febPrecip", "marPrecip", "aprPrecip", "mayPrecip",
+                                  "junPrecip", "julPrecip", "augPrecip", "sepPrecip", "octPrecip", 
+                                  "novPrecip", "decPrecip"];
+
+        // Function to create charts
+        function createChart(canvasId, data, label, yLabel) {
+            const ctx = document.getElementById(canvasId)?.getContext('2d');
+            if (ctx) {
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: Array(data.length).fill().map((_, idx) => idx + 1),
+                        datasets: [{
+                            label: label,
+                            data: data,
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            fill: false,
+                            pointRadius: 5,
+                            pointStyle: 'circle'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            x: { title: { display: true, text: '5-Year Intervals' } },
+                            y: { title: { display: true, text: yLabel } }
+                        }
+                    }
+                });
+            }
+        }
+
+        // Create temperature charts
+        for (let i = 0; i < 12; ++i) {
+            createChart(monthTempNames[i], monthTemps[i]?.map(temp => temp.value) || [], `Temperature - ${monthTempNames[i]}`, 'Temperature (°F)');
+        }
+
+        // Create precipitation charts
+        for (let i = 0; i < 12; ++i) {
+            createChart(monthPrecipNames[i], monthPrecip[i]?.map(precip => precip.value) || [], `Precipitation - ${monthPrecipNames[i]}`, 'Precipitation (inches)');
+        }
+    </script>
+</body>
+</html>

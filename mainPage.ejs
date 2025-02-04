@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Main Page of Past Weather Record Document</title>
+    <style>
+        body {
+            background-color: bisque;
+            font-family: Georgia, 'Times New Roman', Times, serif;
+            color: darkgrey;
+        }
+        h1 {
+            font-size: large;
+        }
+        .map {
+            position: absolute;
+            left: 20px;
+            height: 50%;
+            width: 50%;
+            padding: 4px;
+            box-sizing: border-box;
+        }
+        .coordinates {
+            position: absolute;
+            right: 20px;
+            padding: 4px;
+            box-sizing: border-box;
+        }
+    </style>
+    <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB4yROsZQ3D6_y3hGrbTZ_zfpS9a_X61OE&callback=initMap"></script>
+</head>
+<body>
+    <h1>Welcome to the site where you can view and compare weather records by city!</h1>
+    <h2>Below: you'll be able to play around with a variety of tools to compare and contrast 
+        weather data city by city!
+    </h2>
+    <div class="map" id="map"></div>
+
+    <div class="coordinates">
+        <form action="/getLatandLang" method="POST">
+            <label for="id">Input your location id here:</label>
+            <input type="text" id="id" name="id" required>
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+
+    <script>
+        async function initMap() {
+            const map = new google.maps.Map(document.getElementById('map'), {
+                center: { lat: 37.4239163, lng: -122.0947209 },
+                zoom: 10,
+            });
+
+            // Inject server-side locations
+            const locs = <%- JSON.stringify(locations) %>;
+
+            /*
+           const locations = [
+                { longitude: -122.084, latitude: 37.421998, id: 'FAKE001' },
+                { longitude: -123.084, latitude: 38.421998, id: 'FAKE002' },
+                { longitude: -121.084, latitude: 36.421998, id: 'FAKE003' }
+            ];
+            */
+
+            
+
+            // Add markers to the map
+            locs.forEach(location => {
+                const marker = new google.maps.Marker({
+                    map: map,
+                    position: { lat: location.latitude, lng: location.longitude },
+                    //title: location.id || "Weather Location"
+                });
+
+                // Add click listener (optional)
+                marker.addListener('click', () => {
+                    alert(`Latitude: ${location.latitude}, Longitude: ${location.longitude}, ID: ${location.id}`);
+                });
+            });
+        }
+    </script>
+</body>
+</html>

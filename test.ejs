@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Display Locations</title>
+    <style>
+        body {
+            background-color: bisque;
+            font-family: Georgia, 'Times New Roman', Times, serif;
+            color: darkgrey;
+        }
+        h1 {
+            text-align: center;
+        }
+        .locations-list {
+            margin: 20px auto;
+            width: 50%;
+            background: white;
+            border: 1px solid #ccc;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        .locations-list ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        .locations-list li {
+            margin: 10px 0;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <h1>check</h1>
+    <ul id="list"></ul>
+    <script>
+        async function print() {
+            // Get the data sent from the server
+            const nums = <%- JSON.stringify(send) %>;
+
+            // Get the unordered list element by ID
+            const list = document.getElementById("list");
+
+            // Loop through each item in the array and add it as a list item
+            nums.forEach(item => {
+                const li = document.createElement('li');
+                li.textContent = item; // Use item directly since it's already a string
+                list.appendChild(li);
+            });
+        }
+
+        // Ensure the script runs only after the DOM is fully loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            print(); // Invoke the function
+        });
+    </script>
+</body>
+</html>
