@@ -1,123 +1,133 @@
 import requests
 import json
-from statistics import mean
+from datetime import datetime, timedelta
+import sys
 
-# Define configuration parameters for the API
-url = "https://www.ncei.noaa.gov/cdo-web/api/v2/data"
-headers = {
-    'token': 'YOUR_API_TOKEN'  # Replace with your actual token
-}
-
-# Configuration details for the dataset and location
-config = {
-    'datasetid': 'GHCND',                # Specifies the type of data we want (e.g., monthly)
-    'location_id': 'CITY:US530018',      # Defines location ID for data retrieval
-    'start_date': '2020-01-01',          # Start date for data extraction
-    'end_date': '2020-12-31'             # End date for data extraction
-}
-
-# We then pass on values from the params section into the actual API request to pull data from
-# the API. The original values we pass in are taken from the config and passed in to the data 
-# to actually get them
-params = {
-    'datasetid': config['datasetid'],  # Dependent on what type of data we want (e.g., monthly)
-    'locationid': config['location_id'], # Dependent on location
-    'startdate': config['start_date'],  # Sets the start date
-    'enddate': config['end_date'],      # Sets the end date
-    'limit': 1000                       # Set a limit on results, defaulting to 1000
-}
-
-# Make the API request
-response = requests.get(url, headers=headers, params=params)
-
-# Check if the API request is successful
-if response.status_code == 200:
-    # We save the response JSON file where the API dumps into a variable called data
-    data = response.json()
-    # From here we take the 'results' portion of the actual JSON file from what was given to us via
-    # the actual API call. The 'results' is what stores ALL results for all monthly data in the 
-    # location set and the date set we had
-    records = data.get('results', [])
-    
-    # monthlyData will hold all the data we actually want
-    monthlyData = []
-    # For loop to run through all the records we got from our JSON
-    for record in records:
-        # We extract the date, temperature, and precipitation
-        date = record.get('date')
-        temp = record.get('temperature')
-        precip = record.get('precipitation')
-        # We then append these values onto the actual monthlyData list, adding them so that
-        # the data values we want are stored in this
-        monthlyData.append({
-            "date": date,
-            "temperature": temp,
-            "precipitation": precip
-        })
-
-    # What we did here is take all the data in monthlyData and dump it into the data.json file
-    with open("data.json", "w") as f:
-        # Now you add all of the data from monthlyData into the data.json file
-        json.dump(monthlyData, f, indent=4)
-        print("Monthly data saved to data.json")
+# Get the location_id from command-line arguments
+if len(sys.argv) > 1:
+    location_id = sys.argv[1]
 else:
-    # If there’s an error with the API request, print an error message
-    print("Error fetching data")
+    print("No location id given")
+    sys.exit(1)
 
-# What these two do is essentially initialize a library with 12 values (13 is not included)
-# So essentially you have 12 values from monthlyTemp(1) to monthlyTemp(12), each of which can contain 
-# datasets within themselves 
-# It's under the premise of library creation in Java
-monthlyTemp = {i: [] for i in range(1, 13)}
-monthlyPrecip = {i: [] for i in range(1, 13)}
+# Define the token
+token = 'wIYbgYPkGwSUCkoldrbhdvyZoFyAtPpU'
+headers = {'token': token}
+url = "https://www.ncei.noaa.gov/cdo-web/api/v2/data"
 
-# Initialize dictionaries to store 5-year averages for temperature and precipitation
-monthlyAverageTemp = {i: [] for i in range(1, 13)}
-monthlyAveragePrecip = {i: [] for i in range(1, 13)}
-
-count = 0  # Initialize count to track each 5-year (60 months) block
-
-# This for loop iterates through all data sets in "data"
-for record in monthlyData:
-    # From here, you get both the temperature and the precipitation from the actual data.json file
-    temp = record.get('temperature')
-    precipitation = record.get('precipitation')
-    date = record.get('date')
-
-    # Check if data is valid
-    if date and temp is not None and precipitation is not None:
-        # Here you first split the value of the actual date. So given we have "YYYY-MM-DD", 
-        # doing such a split would give us the month as the second element
-        month = int(date.split("-")[1])
-        # Append temperature and precipitation values that correspond to the specific month
-        monthlyTemp[month].append(temp)
-        monthlyPrecip[month].append(precipitation)
-        count += 1
-
-    # Once count reaches 60, calculate the 5-year averages
-    if count == 60:
-        # Find the mean of both the temp and precip for each month within the 5-year period
-        for i in range(1, 13):
-            # Calculate average for each month and store it in the 5-year average dictionaries
-            monthlyAverageTemp[i].append(mean(monthlyTemp[i]) if monthlyTemp[i] else None)
-            monthlyAveragePrecip[i].append(mean(monthlyPrecip[i]) if monthlyPrecip[i] else None)
+# Function to get metadata and determine mindate, maxdate, and available datatypes
+def get_station_metadata(location_id):
+    print(f"Fetching metadata for station: {location_id}")
+    metadata_url = f"https://www.ncei.noaa.gov/cdo-web/api/v2/stations/{location_id}"
+    response = requests.get(metadata_url, headers=headers)
+    
+    # Debug: Check if we successfully fetched the station metadata
+    print(f"Metadata response status: {response.status_code}")
+    
+    if response.status_code == 200:
+        metadata = response.json()
+        print("Station metadata:", json.dumps(metadata, indent=4))  # Debug: print the fetched metadata
         
-        # Reset monthly data and count for the next 5-year period
-        monthlyTemp = {i: [] for i in range(1, 13)}
-        monthlyPrecip = {i: [] for i in range(1, 13)}
-        count = 0
+        mindate = metadata.get("mindate")
+        maxdate = metadata.get("maxdate")
 
-# The final data library is then created to hold the 5-year average temp and precip for each month
-final_data = {
-    "monthlyAverageTemp": monthlyAverageTemp,
-    "monthlyAveragePrecip": monthlyAveragePrecip
-}
+        # Fetch available datatypes for the station
+        datatypes_url = "https://www.ncei.noaa.gov/cdo-web/api/v2/datatypes"
+        params = {
+            'stationid': location_id,
+            'datasetid': 'GSOM',
+            'limit': 100
+        }
+        datatypes_response = requests.get(datatypes_url, headers=headers, params=params)
+        
+        print(f"Datatypes response status: {datatypes_response.status_code}")  # Debug: check datatype status
+        
+        if datatypes_response.status_code == 200:
+            datatypes = [item['id'] for item in datatypes_response.json().get('results', [])]
+            print("Available datatypes:", datatypes)  # Debug: print available datatypes
+        else:
+            print("Error fetching datatypes:", datatypes_response.status_code)
+            datatypes = []
 
-# We then take the finalData.json file and dump the values of final_data into it
-with open("finalData.json", "w") as f:
-    # Store all the final averaged data in finalData.json
-    json.dump(final_data, f, indent=4)
-    print("Final data stored successfully!")
+        return mindate, maxdate, datatypes
+    
+    print("Error fetching station metadata:", response.status_code)
+    return None, None, []
+
+# Function to fetch data within a specified range
+def fetch_data_for_period(location_id, start_date, end_date, datatypeid):
+    params = {
+        'datasetid': 'GSOM',
+        'stationid': location_id,
+        'startdate': start_date,
+        'enddate': end_date,
+        'datatypeid': datatypeid,
+        'limit': 1000
+    }
+    
+    response = requests.get(url, headers=headers, params=params)
+    print(f"Fetching data from {start_date} to {end_date} for datatype {datatypeid}. Status Code: {response.status_code}")
+    
+    if response.status_code == 200:
+        return response.json().get('results', [])
+    else:
+        print("Error fetching data:", response.status_code)
+        print("Response text:", response.text)
+        return []
+
+# Fetch metadata for the station
+mindate, maxdate, available_datatypes = get_station_metadata(location_id)
+
+# Debug: Print the retrieved mindate and maxdate
+print(f"Mindate: {mindate}, Maxdate: {maxdate}")
+
+if not mindate or not maxdate:
+    print("Could not retrieve metadata for the station.")
+    sys.exit(1)
+
+# Check if the desired datatypes are available
+required_datatypes = ['PRCP', 'TAVG']
+filtered_datatypes = [dtype for dtype in required_datatypes if dtype in available_datatypes]
+
+if not filtered_datatypes:
+    print(f"No required datatypes available for station {location_id}. Available datatypes: {available_datatypes}")
+    sys.exit(1)
+
+# Convert mindate and maxdate to datetime objects
+start_date = datetime.strptime(mindate, "%Y-%m-%d")
+end_date = datetime.strptime(maxdate, "%Y-%m-%d")
+
+# Initialize a list to store the fetched data
+monthlyData = []
+chunk_size = 8  # 8 years to stay within API limits
+
+# Fetch data in 8-year chunks
+while start_date < end_date:
+    next_end_date = min(start_date + timedelta(days=chunk_size * 365), end_date)
+    
+    for datatype in filtered_datatypes:
+        data_chunk = fetch_data_for_period(
+            location_id,
+            start_date.strftime("%Y-%m-%d"),
+            next_end_date.strftime("%Y-%m-%d"),
+            datatype
+        )
+        # Append the fetched data to the list
+        monthlyData.extend(data_chunk)
+    
+    # Save the data to a JSON file after each chunk
+    with open("data.json", "w") as f:
+        json.dump(monthlyData, f, indent=4)
+    
+    # Move to the next chunk
+    start_date = next_end_date + timedelta(days=1)
+
+# Final print statement after fetching all data
+print(f"Fetched a total of {len(monthlyData)} records")
+
+
+
+
 
 
 
