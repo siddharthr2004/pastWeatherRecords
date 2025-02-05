@@ -28,7 +28,7 @@ By making climate data more **accessible and visual**, this tool helps users rec
 
 ## 🖥 Try It Out  
 
-🔗 **Live Demo:** [pastWeather]([https://yourwebsite.com](https://pastweather.siddharth-rajan.dev/))  
+🔗 **Live Demo:** ([https://yourwebsite.com](https://pastweather.siddharth-rajan.dev/))  
 
 ---
 
