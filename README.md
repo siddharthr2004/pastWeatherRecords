@@ -1,48 +1,45 @@
 # 🌍 Climate Change Weather Tracker  
 
-### 📊 Analyzing Climate Trends with NOAA Data  
+###  Analyzing Climate Trends with NOAA Data  
 
-A web-based tool which visualizes **temperature and precipitation changes over time** to track key climate patterns. Using real-world NOAA data, this site allows users to compare **monthly weather variations across different cities** and observe **5-year interval trends** within different climactic variables.  
+A web tool which visualizes **temperature and precipitation changes over time** to track key climate patterns. Using real-world NOAA data, this site allows users to compare **monthly weather variations across different cities** and observe **5-year interval trends** within different climactic variables.  
 
-## ⚡ Why This Matters  
+## Features of this tool:  
 
-- 🌬 **See how global temperatures have changed** over time  
-- 🌧 **Analyze precipitation shifts** to detect extreme weather trends and anamolies    
-- 🏞 **Compare climate data across cities** using an interactive map  
-- 📊 **Turn raw data into visually appealing images** with easy-to-read charts  
-
-By making climate data **easier to understand and visual**, this tool helps users recognize long-term environmental shifts.  
+-  **See how global temperatures have changed** over time  
+-  **Analyze precipitation shifts** to detect extreme weather trends and anamolies    
+-  **Compare climate data across cities** using an interactive map  
+-  **Turn raw data into visually appealing images** with easy-to-read charts  
 
 ---  
 
-## 🚀 Features  
+## Features  
 
-🎯 **Live Climate Data** – Using the **NOAA API** users can pull real-time & historical weather data  
-🎯 **5-Year Interval Comparisons** – Track **temperature & precipitation trends** over five year intervals  
-🎯 **Google Maps Integration** – Click any pinned city to explore its climate history  
-🎯 **Dynamic Graphs** – Uses **Chart.js** to generate **interactive and exciting visuals**  
-🎯 **JSON Data Parsing** – Processes & analyzes complex weather datasets  
-🎯 **Node.js & Express Backend** – Handles API requests efficiently  
+-  **Live Climate Data** – Using the **NOAA API** users can pull real-time & historical weather data  
+-  **5-Year Interval Comparisons** – Track **temperature & precipitation trends** over five year intervals  
+-  **Google Maps Integration** – Click any pinned city to explore its climate history  
+-  **Dynamic Graphs** – Uses **Chart.js** to generate **interactive and exciting visuals**  
+-  **JSON Data Parsing** – Processes & analyzes complex weather datasets  
+-  **Node.js & Express Backend** – Handles API requests efficiently  
 
 ---  
 
-## 🎥 Try It Out  
+##  Try It Out  
 
-🛡 **Live Demo:** (https://pastweather.siddharth-rajan.dev/)  
+ **Website link:** (https://pastweather.siddharth-rajan.dev/)  
 
 ---  
 
 ## 📂 Key Files & Their Role  
 
 - **`app.js`** → Main backend (Node.js & Express) handling API requests  
-- **`weather.js`** → Fetches and processes NOAA climate data  
-- **`chart.js`** → Generates temperature & precipitation graphs  
-- **`map.ejs`** → Displays an interactive Google Map  
-- **`parsedWeather.json`** → Stores structured climate data  
+- **`pastWeather.js`** → Fetches and processes NOAA climate data  
+- **`pastWeather.ejs`** → Generates temperature & precipitation graphs  
+- **`geLocations.js`** → Gets the location of different NOAA databases 
 
 ---  
 
-## 🛠 Setup Guide  
+##  Setup Guide  
 
 ### 1️⃣ Clone the Repository  
 First, download the project to your local machine:  
